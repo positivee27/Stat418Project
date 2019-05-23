@@ -1,8 +1,20 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+import plotly.graph_objs as go
+from plotly.offline import iplot
+from pylab import rcParams
+import statsmodels.api as sm
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.tsa.arima_process import ArmaProcess
+from statsmodels.tsa.arima_model import ARMA
+from statsmodels.tsa.arima_model import ARIMA
+from sklearn.metrics import mean_squared_error
+import math
+# plt.style.use('fivethirtyeight')
 
 
 def web_scrap_data(url):
@@ -37,36 +49,116 @@ def web_scrap_data(url):
     data_df['Date'] = data_df['Date'].str.replace(',', '')
     data_df['Volume'] = data_df['Volume'].str.replace(',', '').astype(int)
     data_df['Date'] = pd.to_datetime(data_df.Date)
+
+    data_df['Open'] = data_df['Open'].astype(float)
+    data_df['High'] = data_df['High'].astype(float)
+    data_df['Low'] = data_df['Low'].astype(float)
+    data_df['Close'] = data_df['Close'].astype(float)
+    data_df['Adj. Close'] = data_df['Adj. Close'].astype(float)
     return data_df
 
 
-aapl = web_scrap_data('https://finance.yahoo.com/quote/AAPL/history?'
-                      'period1=1514793600&'
-                      'period2=1519804800&interval=1d&filter=history&frequency=1d')
-aapl = aapl.append(web_scrap_data('https://finance.yahoo.com/quote/AAPL/history?'
-                                  'period1=1519891200&'
-                                  'period2=1527750000&interval=1d&filter=history&frequency=1d'), ignore_index=True)
-aapl = aapl.append(web_scrap_data('https://finance.yahoo.com/quote/AAPL/history?'
-                                  'period1=1527836400&'
-                                  'period2=1535698800&interval=1d&filter=history&frequency=1d'), ignore_index=True)
-aapl = aapl.append(web_scrap_data('https://finance.yahoo.com/quote/AAPL/history?'
-                                  'period1=1535785200&'
-                                  'period2=1546243200&interval=1d&filter=history&frequency=1d'), ignore_index=True)
+# aapl = web_scrap_data('https://finance.yahoo.com/quote/AAPL/history?'
+#                       'period1=1514793600&'
+#                       'period2=1519804800&interval=1d&filter=history&frequency=1d')
+# aapl = aapl.append(web_scrap_data('https://finance.yahoo.com/quote/AAPL/history?'
+#                                   'period1=1519891200&'
+#                                   'period2=1527750000&interval=1d&filter=history&frequency=1d'), ignore_index=True)
+# aapl = aapl.append(web_scrap_data('https://finance.yahoo.com/quote/AAPL/history?'
+#                                   'period1=1527836400&'
+#                                   'period2=1535698800&interval=1d&filter=history&frequency=1d'), ignore_index=True)
+# aapl = aapl.append(web_scrap_data('https://finance.yahoo.com/quote/AAPL/history?'
+#                                   'period1=1535785200&'
+#                                   'period2=1546243200&interval=1d&filter=history&frequency=1d'), ignore_index=True)
 
+# aapl = aapl.sort_values(by='Date').reset_index(drop=True)
+# aapl.to_csv('418data.csv', index=False)
 
+aapl = pd.read_csv('418data.csv', header=0, index_col='Date', parse_dates=True)
 print(aapl.shape)
-aapl['Open'] = aapl['Open'].astype(float)
-aapl['High'] = aapl['High'].astype(float)
-aapl['Low'] = aapl['Low'].astype(float)
-aapl['Close'] = aapl['Close'].astype(float)
-aapl['Adj. Close'] = aapl['Adj. Close'].astype(float)
-aapl = aapl.sort_values(by='Date').reset_index(drop=True)
 print(aapl.head())
-aapl.to_csv('418data', index=False)
 
-aapl['Close'].plot(grid=True)
-daily_close = aapl['Close']
-daily_pct_change = daily_close / daily_close.shift(1) - 1
-daily_pct_change.hist(bins=50)
-plt.show()
-print(daily_pct_change.describe())
+# Plot the Data
+aapl['2018':'2018'].plot(subplots=True, figsize=(10, 12))
+plt.title('Apple stock attributes in 2018')
+plt.savefig('stocks.png')
+
+trace = go.Candlestick(x=aapl.index,
+                       open=aapl.Open,
+                       high=aapl.High,
+                       low=aapl.Low,
+                       close=aapl.Close)
+data = [trace]
+iplot(data, filename='simple_candlestick')
+
+## Exploratory Analysis
+
+### Decomposition Plots
+rcParams['figure.figsize'] = 11, 9
+decomposed_aapl_volume = sm.tsa.seasonal_decompose(aapl['Close'], freq=90)
+figure = decomposed_aapl_volume.plot()
+plt.title('Decomposition Plots')
+plt.savefig('Decomposition Plots.png')
+
+adf = adfuller(aapl['Close'])
+print('p-value: {}' .format(float(adf[1])))
+# p-value of 0.76 > 0.05 indicates non-stationarity in the data so we need to
+# adjust the data to become stationnary
+
+plot_acf(aapl['Close'], lags=25, title='AAPL Close ACF')
+plt.title('Autocorrelation of Closing Price')
+plt.savefig('ACF.png')
+plot_pacf(aapl['Close'], lags=25, title='AAPL Close PACF')
+plt.title('Partial Autocorrelation of Closing Price')
+plt.savefig('PACF.png')
+# Plotting the ACF and PACF we see that there is large autocorrelation within the lagged values, and we
+# see geometric decay in our plots. This indicates we will have to transform our data to be stationary
+
+aapl['Close_diff'] = aapl['Close'].diff()
+aapl.iloc[0, 6] = 0
+temp = pd.DataFrame(aapl['Close_diff'])
+temp.reset_index(level=0, inplace=True)
+temp['Close_diff'].plot(figsize=(20, 6))
+plt.title('Differenced Closing Price')
+plt.savefig('Differenced Closing Price.png')
+
+adf = adfuller(aapl['Close_diff'])
+print('p-value: {}' .format(float(adf[1])))
+
+plot_acf(aapl['Close_diff'], lags=25, title='AAPL Differenced Close ACF')
+plt.title('Autocorrelation of Differenced Closing Price')
+plt.savefig('Differenced ACF.png')
+
+plot_pacf(aapl['Close_diff'], lags=25, title='AAPl Differenced Close PACF')
+plt.title('Partial Autocorrelation of Differenced Closing Price')
+plt.savefig('Differenced PACF.png')
+
+## Simulating ARMA Model
+
+# rcParams['figure.figsize'] = 16, 21
+# ar1 = np.array([1, -0.9])
+# ma1 = np.array([1, -0.5])
+# ARMA1 = ArmaProcess(ar1, ma1)
+# sim1 = ARMA1.generate_sample(nsample=1000)
+# plt.title('AR(1) model: AR parameter = +0.9')
+# plt.plot(sim1)
+
+model_arma = ARIMA(aapl['Close_diff'], order=(0, 1, 1))
+result = model_arma.fit()
+print(result.summary())
+result.plot_predict(start=200, end=260)
+predict = result.predict(start=250, end=260)
+print(predict)
+plt.title('ARIMA Model Prediction')
+plt.savefig('ARIMA Model.png')
+
+rmse = math.sqrt(mean_squared_error(aapl['Close_diff'].iloc[250, 261], predict))
+
+# aapl['Close'].plot(grid=True)
+# daily_close = aapl['Close']
+# daily_pct_change = daily_close / daily_close.shift(1) - 1
+# daily_pct_change.hist(bins=50)
+# plt.show()
+# print(daily_pct_change.describe())
+
+
