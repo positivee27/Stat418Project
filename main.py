@@ -74,9 +74,15 @@ def web_scrap_data(url):
 # aapl = aapl.sort_values(by='Date').reset_index(drop=True)
 # aapl.to_csv('418data.csv', index=False)
 
-aapl = pd.read_csv('418data.csv', header=0, index_col='Date', parse_dates=True)
-print(aapl.shape)
-print(aapl.head())
+aapl_full = pd.read_csv('418data.csv', header=0, index_col='Date', parse_dates=True)
+print(aapl_full.shape)
+print(aapl_full.head())
+
+### Split the data into training and test
+train_size = len(aapl_full) - 10
+aapl = aapl_full[0:train_size]
+aapl_test = aapl_full[train_size-1:len(aapl_full)]
+
 
 # Plot the Data
 aapl['2018':'2018'].plot(subplots=True, figsize=(10, 12))
@@ -146,13 +152,21 @@ plt.savefig('Differenced PACF.png')
 model_arma = ARIMA(aapl['Close_diff'], order=(0, 1, 1))
 result = model_arma.fit()
 print(result.summary())
-result.plot_predict(start=200, end=260)
-predict = result.predict(start=250, end=260)
+result.plot_predict(start=200, end=250)
+predict = result.predict(start=241, end=250)
 print(predict)
 plt.title('ARIMA Model Prediction')
 plt.savefig('ARIMA Model.png')
 
-rmse = math.sqrt(mean_squared_error(aapl['Close_diff'].iloc[250, 261], predict))
+aapl_test_diff = aapl_test['Close'].diff().dropna().values
+rmse = math.sqrt(mean_squared_error(aapl_test_diff, predict))
+print(rmse)
+
+output = predict.values
+output[0] = output[0] + aapl['Close'][-1]
+for i in range(1, len(output)):
+    output[i] = output[i] + output[i-1]
+print(np.round(output, 4))
 
 # aapl['Close'].plot(grid=True)
 # daily_close = aapl['Close']
