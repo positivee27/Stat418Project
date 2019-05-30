@@ -101,7 +101,7 @@ iplot(data, filename='simple_candlestick')
 
 ### Decomposition Plots
 rcParams['figure.figsize'] = 11, 9
-decomposed_aapl_volume = sm.tsa.seasonal_decompose(aapl['Close'], freq=90)
+decomposed_aapl_volume = sm.tsa.seasonal_decompose(aapl['Close'], freq=60)
 figure = decomposed_aapl_volume.plot()
 plt.title('Decomposition Plots')
 plt.savefig('Decomposition Plots.png')
@@ -139,15 +139,7 @@ plot_pacf(aapl['Close_diff'], lags=25, title='AAPl Differenced Close PACF')
 plt.title('Partial Autocorrelation of Differenced Closing Price')
 plt.savefig('Differenced PACF.png')
 
-## Simulating ARMA Model
-
-# rcParams['figure.figsize'] = 16, 21
-# ar1 = np.array([1, -0.9])
-# ma1 = np.array([1, -0.5])
-# ARMA1 = ArmaProcess(ar1, ma1)
-# sim1 = ARMA1.generate_sample(nsample=1000)
-# plt.title('AR(1) model: AR parameter = +0.9')
-# plt.plot(sim1)
+## Fitting ARMA Model
 
 model_arma = ARIMA(aapl['Close_diff'], order=(0, 1, 1))
 result = model_arma.fit()
@@ -167,6 +159,9 @@ output[0] = output[0] + aapl['Close'][-1]
 for i in range(1, len(output)):
     output[i] = output[i] + output[i-1]
 print(np.round(output, 4))
+
+
+def flask_prediction(days, model=result):
 
 # aapl['Close'].plot(grid=True)
 # daily_close = aapl['Close']
