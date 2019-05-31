@@ -14,7 +14,7 @@ import math
 # plt.style.use('fivethirtyeight')
 
 
-aapl_full = pd.read_csv('.\\scripts\\418data.csv', header=0, index_col='Date', parse_dates=True)
+aapl_full = pd.read_csv('./scripts/418data.csv', header=0, index_col='Date', parse_dates=True)
 print(aapl_full.shape)
 print(aapl_full.head())
 
@@ -95,7 +95,8 @@ rmse = math.sqrt(mean_squared_error(aapl_test_diff, predict))
 print(rmse)
 
 
-def forecast(days, model=result):
+def forecast(dict_values, model=result):
+    days = int(dict_values['days'])
     y_pred = model.predict(start=241, end=240+days)
     output = y_pred.values
     output[0] = output[0] + aapl['Close'][-1]
@@ -105,8 +106,9 @@ def forecast(days, model=result):
     return output
 
 
-# print("predicting 1: ")
+print("predicting 1: ")
 # print(forecast(10))
+print(forecast({"days": "10"}))
 # print("preidcting 2: ")
 # print(forecast(5))
 
@@ -117,4 +119,4 @@ def forecast(days, model=result):
 # plt.show()
 # print(daily_pct_change.describe())
 
-
+# curl -H "Content-Type: application/json" -X POST -d '{"days":"10"}' "http://13.57.212.119:5000/forecast_price"

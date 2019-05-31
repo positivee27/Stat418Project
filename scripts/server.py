@@ -4,7 +4,7 @@ import os
 from flask import Flask, jsonify, request
 
 import json
-from scripts.main import forecast
+from main import forecast
 
 
 HEADERS = {'Content-type': 'application/json', 'Accept': 'text/plain'}
