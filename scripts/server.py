@@ -24,7 +24,7 @@ def flask_app():
 
         print(to_predict)
         pred = forecast(to_predict)
-        return jsonify({"forecast price": pred})
+        return jsonify({"forecast price": pred.tolist()})
     return app
 
 if __name__ == '__main__':
