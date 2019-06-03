@@ -48,10 +48,14 @@ The closing price chart
 ![](./imgs/stocks.png)
 
 We note that the daily price change seems to be normally distributed
-![](./imgs/normPrice.png)
+<p align="center">
+  <img src="./imgs/normPrice.png" width="500" />
+</p>
 
 Decomposition for seasonality and trend
-![](./imgs/decomp.png)
+<p align="center">
+  <img src="./imgs/decomp.png" width="500" />
+</p>
 
 
 #### Stationarity
@@ -83,7 +87,9 @@ We can now fit an ARIMA model.
 #### Model Fitting
 In order to choose the parameters p, d, q, we minimize the AIC. In the end, the most optimal model obtained was with parameters `p=0, d=1, q=1` <br>
 Using the model we can make a forecast of price movement of next next x trading days with confidence levels.
-![](./imgs/model.png)
+<p align="center">
+  <img src="./imgs/model.png" width="500" />
+</p>
 
 Date  |  Forecasted Difference  |  Forecasted Price
 :-----------:|:-----------------:|:--------------:
