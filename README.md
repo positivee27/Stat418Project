@@ -3,7 +3,7 @@
 2. [Deployment](README.md#Deployment)
 3. [Exploratory Data Analysis](README.md#exploratory-data-analysis)
 4. [Modeling](README.md#Modeling)
-5. [Conclusion](README.md#Conclusion)
+5. [Conclusions](README.md#Conclusions)
 
 ## Introduction
 In this project we attempt to model the price of apple's 2018 closing stock price and produce a short term forecast of a few days through ARIMA models. The data is collected by webscraping the data from yahoo finance https://finance.yahoo.com/quote/AAPL/history?p=AAPL by parsing through the HTML for the table. This webscraping process is handled by the script in web_scrap.py seperate from main.py where the modeling is done. Finally, the model is deployed as an Flask API hosted on Amazon Web Service (AWS). Please note, the model will forecast an inputted amount of days from 2018-12-14.
@@ -21,7 +21,7 @@ If it has created the localhost server correctly you will not get your prompt ba
 
 **3. We will pass these through a json formatted input through a curl POST request to the API. This is done as**
 
-`curl -H "Content-Type: application/json" -X POST -d '{"days":"10"}' "http://13.57.212.119:5000/forecast_price"
+`curl -H "Content-Type: application/json" -X POST -d '{"days":"10"}' "http://13.57.212.119:5000/forecast_price"`
 
 This should return 
 `{
@@ -45,13 +45,13 @@ You can change some of the values to see the prediction change. To stop your ser
 To begin, we do some exploratory analysis of the data and check the assumptions requirements for an ARIMA model.
 
 The closing price chart
-![](.\imgs\stocks.png)
+![](./imgs/stocks.png)
 
 We note that the daily price change seems to be normally distributed
-![](.\imgs\normPrice.png)
+![](./imgs/normPrice.png)
 
 Decomposition for seasonality and trend
-![](.\imgs\decomp.png)
+![](./imgs/decomp.png)
 
 
 #### Stationarity
@@ -62,18 +62,18 @@ We get the result `p-value: 0.6779406322533845` indicating non-stationarity in t
 Additionally we can check the ACF and PACF plots for autocorrelation
 ACF             |  PACF
 :-------------------------:|:-------------------------:
-![](.\imgs\ACF.png)  |  ![](.\imgs\PACF.png)
+![](./imgs/ACF.png)  |  ![](./imgs/PACF.png)
 We see that there is large autocorrelation within the lagged values and geometric decay in our plots. This indicates we will have to transform our data to be stationary.
 
 ## Modeling
 In order to build an ARIMA model, we must first transform the data to be stationary. To do this, we take the first difference of the closing price and recheck for stationarity. <br>
-![](.\imgs\DClose.png)
+![](./imgs/DClose.png)
 
 From the Augemented Fuller test we see the new p-value `p-value: 1.9555579579829498e-05`. <br>
 This time the p-value is less than 0.05
 ACF             |  PACF
 :-------------------------:|:-------------------------:
-![](.\imgs\DACF.png)  |  ![](.\imgs\DPACF.png)
+![](./imgs/DACF.png)  |  ![](./imgs/DPACF.png)
 The ACF and PACF now look reasonable within range.
 
 We can now fit an ARIMA model.
@@ -81,7 +81,7 @@ We can now fit an ARIMA model.
 #### Model Fitting
 In order to choose the parameters p, d, q, we minimize the AIC. In the end, the most optimal model obtained was with parameters `p=0, d=1, q=1` <br>
 Using the model we can make a forecast of price movement of next next x trading days with confidence levels.
-![](.\imgs\model.png)
+![](./imgs/model.png)
 
 Date  |  Forecasted Difference  |  Forecasted Price
 :-----------:|:-----------------:|:--------------:
