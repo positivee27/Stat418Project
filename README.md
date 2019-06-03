@@ -60,9 +60,10 @@ We check for stationarity of the closing price using the Augmented Dickey-Fuller
 We get the result `p-value: 0.6779406322533845` indicating non-stationarity in the data so we need to adjust the data to become stationnary. <br>
 
 Additionally we can check the ACF and PACF plots for autocorrelation
-ACF             |  PACF
-:-------------------------:|:-------------------------:
-![](./imgs/ACF.png)  |  ![](./imgs/PACF.png)
+<p float="left">
+  <img src="./imgs/ACF.png" width="425" />
+  <img src="./imgs/PACF.png" width="425" /> 
+</p>
 We see that there is large autocorrelation within the lagged values and geometric decay in our plots. This indicates we will have to transform our data to be stationary.
 
 ## Modeling
@@ -71,9 +72,10 @@ In order to build an ARIMA model, we must first transform the data to be station
 
 From the Augemented Fuller test we see the new p-value `p-value: 1.9555579579829498e-05`. <br>
 This time the p-value is less than 0.05
-ACF             |  PACF
-:-------------------------:|:-------------------------:
-![](./imgs/DACF.png)  |  ![](./imgs/DPACF.png)
+<p float="left">
+  <img src="./imgs/DACF.png" width="425" />
+  <img src="./imgs/DPACF.png" width="425" /> 
+</p>
 The ACF and PACF now look reasonable within range.
 
 We can now fit an ARIMA model.
