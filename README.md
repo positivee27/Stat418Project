@@ -21,7 +21,7 @@ If it has created the localhost server correctly you will not get your prompt ba
 
 **3. We will pass these through a json formatted input through a curl POST request to the API. This is done as**
 
-`curl -H "Content-Type: application/json" -X POST -d '{"days":"10"}' "http://13.57.212.119:5000/forecast_price"`
+`curl -H "Content-Type: application/json" -X POST -d '{"days":"10"}' "http://54.193.125.41:5000/forecast_price"`
 
 This should return 
 `{
