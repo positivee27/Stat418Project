@@ -18,7 +18,7 @@ aapl_full = pd.read_csv('./scripts/418data.csv', header=0, index_col='Date', par
 print(aapl_full.shape)
 print(aapl_full.head())
 
-### Split the data into training and test
+# Split the data into training and test
 train_size = len(aapl_full) - 10
 aapl = aapl_full[0:train_size]
 aapl_test = aapl_full[train_size-1:len(aapl_full)]
@@ -37,9 +37,6 @@ plt.savefig('stocks.png')
 # data = [trace]
 # iplot(data, filename='simple_candlestick')
 
-## Exploratory Analysis
-
-### Decomposition Plots
 rcParams['figure.figsize'] = 11, 9
 decomposed_aapl_volume = sm.tsa.seasonal_decompose(aapl['Close'], freq=60)
 figure = decomposed_aapl_volume.plot()
@@ -48,8 +45,6 @@ plt.savefig('Decomposition Plots.png')
 
 adf = adfuller(aapl['Close'])
 print('p-value: {}' .format(float(adf[1])))
-# p-value of 0.76 > 0.05 indicates non-stationarity in the data so we need to
-# adjust the data to become stationnary
 
 plot_acf(aapl['Close'], lags=25, title='AAPL Close ACF')
 plt.title('Autocorrelation of Closing Price')
@@ -57,8 +52,6 @@ plt.savefig('ACF.png')
 plot_pacf(aapl['Close'], lags=25, title='AAPL Close PACF')
 plt.title('Partial Autocorrelation of Closing Price')
 plt.savefig('PACF.png')
-# Plotting the ACF and PACF we see that there is large autocorrelation within the lagged values, and we
-# see geometric decay in our plots. This indicates we will have to transform our data to be stationary
 
 aapl['Close_diff'] = aapl['Close'].diff()
 aapl.iloc[0, 6] = 0
@@ -79,8 +72,7 @@ plot_pacf(aapl['Close_diff'], lags=25, title='AAPl Differenced Close PACF')
 plt.title('Partial Autocorrelation of Differenced Closing Price')
 plt.savefig('Differenced PACF.png')
 
-## Fitting ARMA Model
-
+# Fitting ARMA Model
 model_arma = ARIMA(aapl['Close_diff'], order=(0, 1, 1))
 result = model_arma.fit()
 print(result.summary())
@@ -107,10 +99,8 @@ def forecast(dict_values, model=result):
 
 
 print("predicting 1: ")
-# print(forecast(10))
 print(forecast({"days": "10"}))
-# print("preidcting 2: ")
-# print(forecast(5))
+# curl -H "Content-Type: application/json" -X POST -d '{"days":"10"}' "http://13.57.212.119:5000/forecast_price"
 
 # aapl['Close'].plot(grid=True)
 # daily_close = aapl['Close']
@@ -118,5 +108,3 @@ print(forecast({"days": "10"}))
 # daily_pct_change.hist(bins=50)
 # plt.show()
 # print(daily_pct_change.describe())
-
-# curl -H "Content-Type: application/json" -X POST -d '{"days":"10"}' "http://13.57.212.119:5000/forecast_price"
